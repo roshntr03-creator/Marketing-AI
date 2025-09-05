@@ -1,13 +1,26 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Language, SmmPlanResult, GroundedResult, InfluencerResult, OptimizerResult } from '../types.ts';
 
-const API_KEY = process.env.API_KEY;
+// Defer AI client initialization to prevent app crash on load if API_KEY is missing.
+let aiInstance: GoogleGenAI | null = null;
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set.");
-}
+const getAi = (): GoogleGenAI => {
+    if (aiInstance) {
+        return aiInstance;
+    }
+    
+    const API_KEY = process.env.API_KEY;
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+    if (!API_KEY) {
+        // This error will now be thrown when a generation function is called,
+        // which can be caught by the component's try/catch block.
+        throw new Error("API_KEY environment variable not set.");
+    }
+
+    aiInstance = new GoogleGenAI({ apiKey: API_KEY });
+    return aiInstance;
+};
+
 
 /**
  * A robust function to parse JSON from a string that might contain markdown or other text.
@@ -198,6 +211,7 @@ const contentBriefSchema = {
 };
 
 export const generateAdIdeas = async (product: string, audience: string, sellingPoints: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', an expert advertising copywriter with experience in high-impact campaigns for the Saudi and Gulf markets. Your ideas must be creative, culturally sensitive, and persuasive. The target language is determined by the user's prompt.";
     const prompt = `Language: ${language === Language.AR ? 'Modern Standard Arabic' : 'English'}. Generate 3-5 distinct ad ideas for the following product. For each idea, provide a clear marketing angle, a compelling headline, professional body copy, and a strong call to action.
     
@@ -226,6 +240,7 @@ export const generateAdIdeas = async (product: string, audience: string, selling
 };
 
 export const generateShortFormIdeas = async (longContent: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a viral social media content creator and strategist, expert on TikTok and Instagram Reels trends in the Middle East. Your ideas must be engaging, thumb-stopping, and highly shareable for a Gulf audience. The target language is determined by the user's prompt.";
     const prompt = `Language: ${language === Language.AR ? 'Modern Standard Arabic' : 'English'}. Analyze the following text and extract 3-5 distinct, engaging short video ideas. The ideas must be tailored for a Middle Eastern audience.
     
@@ -255,6 +270,7 @@ export const generateShortFormIdeas = async (longContent: string, language: Lang
 };
 
 export const generateShortFormIdeasFromImage = async (prompt: string, imageBase64: string, imageMimeType: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a viral social media content creator and strategist, expert on TikTok and Instagram Reels trends in the Middle East. Your ideas must be engaging, thumb-stopping, and highly shareable for a Gulf audience. The target language is determined by the user's prompt.";
     
     const imagePart = {
@@ -289,6 +305,7 @@ export const generateShortFormIdeasFromImage = async (prompt: string, imageBase6
 
 
 export const generateSmmPlan = async (topic: string, numPosts: number, platform: string, language: Language): Promise<GroundedResult<SmmPlanResult>> => {
+    const ai = getAi();
     if (!topic || topic.trim() === "") {
         throw new Error("Campaign topic cannot be empty.");
     }
@@ -316,6 +333,7 @@ Return your response as a single, valid JSON array of objects. Do not include an
 };
 
 export const generateKeywords = async (topic: string, language: Language) => {
+    const ai = getAi();
     if (!topic || topic.trim() === "") {
         throw new Error("Topic cannot be empty.");
     }
@@ -341,6 +359,7 @@ export const generateKeywords = async (topic: string, language: Language) => {
 };
 
 export const generateContentBrief = async (topic: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a content strategist who creates detailed, SEO-optimized content briefs for writers.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Create a comprehensive content brief for an article on the topic: "${topic}".`;
 
@@ -363,6 +382,7 @@ export const generateContentBrief = async (topic: string, language: Language) =>
 };
 
 export const findInfluencers = async (city: string, category: string, followerRange: string, language: Language): Promise<GroundedResult<InfluencerResult>> => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', an influencer marketing specialist. Use Google Search to find real and relevant social media influencers based on user criteria in the Middle East. Prioritize providing profile URLs when available.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Using Google Search, find social media influencers who match the following criteria:
     - City: ${city}
@@ -390,6 +410,7 @@ export const findInfluencers = async (city: string, category: string, followerRa
 };
 
 export const getOptimizerSuggestions = async (platform: string, industry: string, language: Language): Promise<GroundedResult<OptimizerResult>> => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a social media optimization expert. Use Google Search to find the latest data and trends to provide the best recommendations.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Based on recent data from Google Search for the MENA region, provide recommendations for the best times to post and a list of content ideas for the following:
     - Platform: ${platform}
@@ -416,6 +437,7 @@ export const getOptimizerSuggestions = async (platform: string, industry: string
 };
 
 export const generateLandingPageCopy = async (productDescription: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a world-class conversion copywriter specializing in direct response for the MENA market. Your copy must be persuasive, clear, and benefit-driven.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Generate compelling landing page copy for the following product/service.
     
@@ -440,6 +462,7 @@ export const generateLandingPageCopy = async (productDescription: string, langua
 };
 
 export const generateEmailCampaign = async (campaignGoal: string, productDescription: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', an expert email marketer who writes high-converting campaigns for e-commerce and SaaS businesses in the Gulf region.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Generate a sequence of 2-3 marketing emails for the following campaign.
     
@@ -465,6 +488,7 @@ export const generateEmailCampaign = async (campaignGoal: string, productDescrip
 };
 
 export const generateAffiliateOutreach = async (productDescription: string, offer: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a partnership manager specializing in building affiliate networks in the tech and e-commerce spaces in the Middle East.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Write a professional and persuasive outreach email to recruit a new affiliate.
     
@@ -490,6 +514,7 @@ export const generateAffiliateOutreach = async (productDescription: string, offe
 };
 
 export const generateCrmPersona = async (audienceDescription: string, language: Language) => {
+    const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', a market research analyst who creates detailed, actionable customer personas for strategic marketing planning in the MENA region.";
     const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Based on the following audience description, create a detailed customer persona.
     
