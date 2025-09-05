@@ -12,7 +12,6 @@ import { SkeletonLoader } from './shared/SkeletonLoader.tsx';
 
 type GenerationMode = 'text' | 'image';
 
-// FIX: Changed from a named export to a local const to allow for a default export, which is required for React.lazy().
 const ContentAssistant: React.FC = () => {
     const { language } = useLocalization();
     const s = STRINGS[language];

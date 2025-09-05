@@ -9,7 +9,6 @@ import { ResultCard } from './shared/ResultCard.tsx';
 import { CopyButton } from './shared/CopyButton.tsx';
 import { SkeletonLoader } from './shared/SkeletonLoader.tsx';
 
-// FIX: Changed from a named export to a local const to allow for a default export, which is required for React.lazy().
 const SeoAssistant: React.FC = () => {
     const { language } = useLocalization();
     const s = STRINGS[language];

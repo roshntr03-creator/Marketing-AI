@@ -2,7 +2,6 @@
 import React from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
-// FIX: Imported the `Language` enum to resolve reference errors.
 import { AppView, Language } from '../types.ts';
 import { AdIcon } from './icons/AdIcon.tsx';
 import { ContentIcon } from './icons/ContentIcon.tsx';

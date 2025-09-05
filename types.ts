@@ -1,3 +1,4 @@
+
 export enum Language {
   EN = 'en',
   AR = 'ar',
@@ -158,7 +159,6 @@ export interface AdCampaign {
 
 export interface GroundingSource {
   web?: {
-// FIX: Made uri and title optional to match the GroundingChunk type from the API.
     uri?: string;
     title?: string;
   }

@@ -84,11 +84,13 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     // Check for OAuth callback parameters on initial load
     const params = new URLSearchParams(window.location.search);
-    const platform = params.get('platform');
     const code = params.get('code');
 
-    if (platform && code) {
-        setOauthParams({ platform, code });
+    // If a code is present, we assume it's from our OAuth flow
+    if (code) {
+        // Since we only have Facebook implemented, we can hardcode it for now.
+        // A more robust solution might encode the platform in the 'state' parameter.
+        setOauthParams({ platform: 'facebook', code });
         setActiveView(AppView.OAUTH_CALLBACK);
         // Clean the URL to avoid re-triggering the callback flow on refresh
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -177,7 +179,6 @@ const AppContent: React.FC = () => {
       case AppView.SETTINGS:
           return <Settings connections={connections} onConnectionChange={handleConnectionChange} />;
       case AppView.CONNECTING:
-// FIX: Removed unused `setActiveView` prop from Connecting component.
           return <Connecting platform={connectingPlatform!} />;
       case AppView.OAUTH_CALLBACK:
           return <OAuthCallback

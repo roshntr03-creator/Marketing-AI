@@ -9,7 +9,6 @@ import { ResultCard } from './shared/ResultCard.tsx';
 import { triggerHapticFeedback } from '../utils/haptics.ts';
 import { SkeletonLoader } from './shared/SkeletonLoader.tsx';
 
-// FIX: Changed from a named export to a local const to allow for a default export, which is required for React.lazy().
 const LandingPageAssistant: React.FC = () => {
     const { language } = useLocalization();
     const s = STRINGS[language];

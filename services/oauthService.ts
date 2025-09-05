@@ -10,18 +10,15 @@ export const handleOAuthCallback = (
   platform: string
 ): Promise<{ success: true }> => {
   return new Promise((resolve, reject) => {
-    console.log(`Simulating token exchange for ${platform} with code: ${code}`);
+    console.log(`Received REAL authorization code for ${platform}: ${code}`);
+    console.log('This is the point where a backend server is REQUIRED to securely exchange this code for an access token using your App Secret.');
 
-    // Simulate network delay for the server-to-server call
+    // Simulate network delay
     setTimeout(() => {
-      // In a real app, you'd make a server request here with the code
-      // and your client secret to get an access token.
-      // We'll just assume success if the code is our mock code.
-      if (code.startsWith('mock_auth_code')) {
-        resolve({ success: true });
-      } else {
-        reject(new Error('Invalid authorization code.'));
-      }
-    }, 2000); // 2-second delay to simulate a real API call
+      // In a real application, you cannot proceed from here on the frontend.
+      // The App Secret cannot be exposed here.
+      // We are rejecting this promise to demonstrate that the final step must be handled by a server.
+      reject(new Error('Backend server not implemented. Cannot securely exchange auth code for an access token on the client-side.'));
+    }, 1500);
   });
 };

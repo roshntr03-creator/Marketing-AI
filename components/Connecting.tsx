@@ -1,17 +1,13 @@
+
 import React, { useEffect } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
 import { Spinner } from './Spinner.tsx';
+import { FACEBOOK_APP_ID } from '../config.ts';
 
 interface ConnectingProps {
     platform: 'facebook' | 'instagram';
 }
-
-// In a real application, these should come from environment variables
-// and you must configure them in your Facebook Developer App settings.
-const FACEBOOK_CLIENT_ID = 'YOUR_FACEBOOK_CLIENT_ID'; 
-// This must be one of the "Valid OAuth Redirect URIs" in your FB App settings.
-const REDIRECT_URI = window.location.origin + window.location.pathname;
 
 const Connecting: React.FC<ConnectingProps> = ({ platform }) => {
     const { language } = useLocalization();
@@ -20,30 +16,24 @@ const Connecting: React.FC<ConnectingProps> = ({ platform }) => {
     const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
 
     useEffect(() => {
-        const initiateOAuthFlow = () => {
-            // The state parameter should be a random, unguessable string to prevent CSRF attacks.
-            const state = `st=${Date.now()}`; // Simplified for this example
+        // FIX: Removed check for placeholder App ID.
+        // A valid ID is now provided in config.ts, and the previous check
+        // `FACEBOOK_APP_ID === 'YOUR_FACEBOOK_APP_ID_HERE'` caused a TypeScript error
+        // because the two literal types had no overlap. The configuration warning
+        // logic is no longer needed.
+        const initiateRealOAuthRedirect = () => {
+            const redirectUri = window.location.origin + window.location.pathname;
+            const state = `st=${Date.now()}`; // Basic CSRF protection
+            const scope = 'public_profile,email,ads_read,instagram_basic';
             
-            let authUrl = '';
-            
-            if (platform === 'facebook') {
-                const scope = 'read_insights,ads_read';
-                authUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}&scope=${scope}&response_type=code`;
-            } else if (platform === 'instagram') {
-                // NOTE: Instagram uses the Facebook login dialog for Business accounts.
-                // The required permissions are different. This is a simplified example.
-                const scope = 'instagram_basic,instagram_manage_insights,pages_show_list,ads_read';
-                authUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}&scope=${scope}&response_type=code`;
-            }
+            // Construct the real Facebook OAuth URL
+            const facebookAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
 
-            if (authUrl) {
-                // Redirect the user to the actual authentication page
-                window.location.href = authUrl;
-            }
+            // Redirect the user to Facebook to authorize the app
+            window.location.href = facebookAuthUrl;
         };
 
-        // Start the flow shortly after the component mounts to show the loading message
-        const timer = setTimeout(initiateOAuthFlow, 1500);
+        const timer = setTimeout(initiateRealOAuthRedirect, 1500);
 
         return () => clearTimeout(timer);
     }, [platform]);
