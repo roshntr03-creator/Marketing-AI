@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Language, SmmPlanResult, GroundedResult, InfluencerResult, OptimizerResult } from '../types.ts';
+import { Language, SmmPlanResult, GroundedResult, InfluencerResult, OptimizerResult, KeywordResult, ContentBriefResult } from '../types.ts';
 
 // Defer AI client initialization to prevent app crash on load if API_KEY is missing.
 let aiInstance: GoogleGenAI | null = null;
@@ -170,46 +170,6 @@ const crmPersonaSchema = {
     required: ["name", "demographics", "goals", "painPoints"],
 };
 
-const keywordsSchema = {
-    type: Type.OBJECT,
-    properties: {
-        keywords: {
-            type: Type.ARRAY,
-            description: "A list of 10-15 relevant keywords, including a mix of short-tail and long-tail.",
-            items: { type: Type.STRING },
-        },
-        searchIntent: {
-            type: Type.STRING,
-            description: "A brief description of the likely user search intent (e.g., 'Informational', 'Commercial', 'Navigational')."
-        },
-    },
-    required: ["keywords", "searchIntent"],
-};
-
-const contentBriefSchema = {
-    type: Type.OBJECT,
-    properties: {
-        title: { type: Type.STRING, description: "A compelling, SEO-friendly title for the article." },
-        hook: { type: Type.STRING, description: "An engaging opening sentence or question to capture the reader's attention." },
-        introduction: { type: Type.STRING, description: "A short introduction (2-3 sentences) to the topic." },
-        bodySections: {
-            type: Type.ARRAY,
-            description: "An array of 3-5 main sections for the article body.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING, description: "The subtitle for this section." },
-                    points: { type: Type.ARRAY, items: { type: Type.STRING }, description: "A list of key points or questions to cover in this section." },
-                },
-                required: ["title", "points"],
-            }
-        },
-        cta: { type: Type.STRING, description: "A clear call-to-action for the end of the article." },
-        seoMetaDescription: { type: Type.STRING, description: "A concise and compelling meta description for SEO (max 160 characters)." },
-    },
-    required: ["title", "hook", "introduction", "bodySections", "cta", "seoMetaDescription"],
-};
-
 export const generateAdIdeas = async (product: string, audience: string, sellingPoints: string, language: Language) => {
     const ai = getAi();
     const systemInstruction = "You are 'Marketing AI', an expert advertising copywriter with experience in high-impact campaigns for the Saudi and Gulf markets. Your ideas must be creative, culturally sensitive, and persuasive. The target language is determined by the user's prompt.";
@@ -332,13 +292,15 @@ Return your response as a single, valid JSON array of objects. Do not include an
     }
 };
 
-export const generateKeywords = async (topic: string, language: Language) => {
+export const generateKeywords = async (topic: string, language: Language): Promise<GroundedResult<KeywordResult>> => {
     const ai = getAi();
     if (!topic || topic.trim() === "") {
         throw new Error("Topic cannot be empty.");
     }
-    const systemInstruction = "You are 'Marketing AI', an SEO expert specializing in keyword research for the MENA region. Your suggestions should be highly relevant and cover different search intents.";
-    const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Generate a list of relevant keywords and the primary search intent for the topic: "${topic}".`;
+    const systemInstruction = "You are 'Marketing AI', an SEO expert specializing in keyword research for the MENA region. You MUST use Google Search to find relevant and up-to-date keywords. Your suggestions should be highly relevant and cover different search intents.";
+    const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Using Google Search, generate a list of relevant keywords and the primary search intent for the topic: "${topic}".
+    
+    Return your response as a single, valid JSON object. Do not include any introductory text, closing text, or markdown formatting like \`\`\`json. The entire response must be only the JSON object. The object must have keys "keywords" (an array of 10-15 strings) and "searchIntent" (a string).`;
 
     try {
         const response = await ai.models.generateContent({
@@ -346,22 +308,24 @@ export const generateKeywords = async (topic: string, language: Language) => {
             contents: prompt,
             config: {
                 systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: keywordsSchema,
+                tools: [{ googleSearch: {} }],
             },
         });
-        const jsonStr = response.text.trim();
-        return JSON.parse(jsonStr);
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const data = parseGroundedJson(response.text, '{}');
+        return { data, sources };
     } catch (error) {
         console.error("Error generating keywords:", error);
         throw new Error("Failed to generate keywords from Gemini API.");
     }
 };
 
-export const generateContentBrief = async (topic: string, language: Language) => {
+export const generateContentBrief = async (topic: string, language: Language): Promise<GroundedResult<ContentBriefResult>> => {
     const ai = getAi();
-    const systemInstruction = "You are 'Marketing AI', a content strategist who creates detailed, SEO-optimized content briefs for writers.";
-    const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Create a comprehensive content brief for an article on the topic: "${topic}".`;
+    const systemInstruction = "You are 'Marketing AI', a content strategist who creates detailed, SEO-optimized content briefs for writers. You MUST use Google Search to research the topic and provide up-to-date and comprehensive information for the brief.";
+    const prompt = `Language: ${language === Language.AR ? 'Arabic' : 'English'}. Using Google Search, create a comprehensive content brief for an article on the topic: "${topic}".
+    
+    Return your response as a single, valid JSON object. Do not include any introductory text, closing text, or markdown formatting like \`\`\`json. The entire response must be only the JSON object. The object must conform to this structure: { "title": string, "hook": string, "introduction": string, "bodySections": [{ "title": string, "points": string[] }], "cta": string, "seoMetaDescription": string }.`;
 
     try {
         const response = await ai.models.generateContent({
@@ -369,12 +333,12 @@ export const generateContentBrief = async (topic: string, language: Language) =>
             contents: prompt,
             config: {
                 systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: contentBriefSchema,
+                tools: [{ googleSearch: {} }],
             },
         });
-        const jsonStr = response.text.trim();
-        return JSON.parse(jsonStr);
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const data = parseGroundedJson(response.text, '{}');
+        return { data, sources };
     } catch (error) {
         console.error("Error generating content brief:", error);
         throw new Error("Failed to generate content brief from Gemini API.");

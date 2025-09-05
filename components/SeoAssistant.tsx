@@ -1,12 +1,10 @@
-
 import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
-import { KeywordResult, ContentBriefResult } from '../types.ts';
+import { KeywordResult, ContentBriefResult, GroundedResult } from '../types.ts';
 import { generateKeywords, generateContentBrief } from '../services/geminiService.ts';
 import { Spinner } from './Spinner.tsx';
 import { ResultCard } from './shared/ResultCard.tsx';
-import { CopyButton } from './shared/CopyButton.tsx';
 import { SkeletonLoader } from './shared/SkeletonLoader.tsx';
 
 const SeoAssistant: React.FC = () => {
@@ -16,8 +14,8 @@ const SeoAssistant: React.FC = () => {
     const [topic, setTopic] = useState('');
     const [loading, setLoading] = useState<'keywords' | 'brief' | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [keywordResult, setKeywordResult] = useState<KeywordResult | null>(null);
-    const [briefResult, setBriefResult] = useState<ContentBriefResult | null>(null);
+    const [keywordResult, setKeywordResult] = useState<GroundedResult<KeywordResult> | null>(null);
+    const [briefResult, setBriefResult] = useState<GroundedResult<ContentBriefResult> | null>(null);
 
     const handleGenerateKeywords = async () => {
         if (!topic) return;
@@ -52,20 +50,30 @@ const SeoAssistant: React.FC = () => {
     };
 
     const formatBriefForCopy = (brief: ContentBriefResult): string => {
+        if (!brief || !brief.title) return '';
         let text = `${s.title}: ${brief.title}\n\n`;
         text += `${s.hook}: ${brief.hook}\n\n`;
         text += `${s.introduction}: ${brief.introduction}\n\n`;
         text += `${s.bodySections}:\n`;
-        brief.bodySections.forEach(section => {
-            text += `- ${section.title}:\n`;
-            section.points.forEach(point => {
-                text += `  - ${point}\n`;
+        if(brief.bodySections) {
+            brief.bodySections.forEach(section => {
+                text += `- ${section.title}:\n`;
+                if(section.points) {
+                    section.points.forEach(point => {
+                        text += `  - ${point}\n`;
+                    });
+                }
             });
-        });
+        }
         text += `\n${s.callToAction}: ${brief.cta}\n\n`;
         text += `${s.metaDescription}: ${brief.seoMetaDescription}\n`;
         return text;
     };
+    
+    const formatKeywordsForCopy = (result: KeywordResult): string => {
+        if (!result || !result.keywords) return '';
+        return `${s.keywords}:\n- ${result.keywords.join('\n- ')}\n\n${s.searchIntent}: ${result.searchIntent}`;
+    }
 
     return (
         <div>
@@ -92,7 +100,7 @@ const SeoAssistant: React.FC = () => {
                     <button
                         onClick={handleGenerateBrief}
                         disabled={!topic || !!loading}
-                        className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring focus:ring-indigo-300 focus:ring-opacity-80 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                        className="px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-200 transform bg-primary-600 rounded-md hover:bg-primary-500 focus:outline-none focus:ring focus:ring-primary-300 focus:ring-opacity-80 disabled:bg-primary-300 disabled:cursor-not-allowed"
                     >
                         {loading === 'brief' ? <Spinner/> : s.generateBrief}
                     </button>
@@ -110,43 +118,79 @@ const SeoAssistant: React.FC = () => {
             )}
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                {keywordResult && (
-                     <ResultCard title={s.keywords} copyText={`${s.keywords}:\n- ${keywordResult.keywords.join('\n- ')}\n\n${s.searchIntent}: ${keywordResult.searchIntent}`}>
+                {keywordResult && keywordResult.data && keywordResult.data.keywords && (
+                     <ResultCard title={s.keywords} copyText={formatKeywordsForCopy(keywordResult.data)}>
                         <div className="mb-4">
-                            <p className="font-semibold text-primary-600 dark:text-primary-400">{s.searchIntent}: <span className="font-normal text-gray-600 dark:text-gray-300">{keywordResult.searchIntent}</span></p>
+                            <p className="font-semibold text-primary-600 dark:text-primary-400">{s.searchIntent}: <span className="font-normal text-gray-600 dark:text-gray-300">{keywordResult.data.searchIntent}</span></p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {keywordResult.keywords.map((kw, index) => (
+                            {keywordResult.data.keywords.map((kw, index) => (
                                 <span key={index} className="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">
                                     {kw}
                                 </span>
                             ))}
                         </div>
-                    </ResultCard>
-                )}
-
-                {briefResult && (
-                    <ResultCard title={s.contentBrief} copyText={formatBriefForCopy(briefResult)}>
-                        <div className="space-y-4 text-gray-700 dark:text-gray-300">
-                            <div><strong className="text-gray-900 dark:text-white">{s.title}:</strong> {briefResult.title}</div>
-                            <div><strong className="text-gray-900 dark:text-white">{s.hook}:</strong> {briefResult.hook}</div>
-                            <div><strong className="text-gray-900 dark:text-white">{s.introduction}:</strong> {briefResult.introduction}</div>
-                            <div>
-                                <strong className="text-gray-900 dark:text-white">{s.bodySections}:</strong>
-                                <ul className="mt-2 space-y-3 ps-5 rtl:ps-0 rtl:pe-5">
-                                    {briefResult.bodySections.map((section, idx) => (
-                                        <li key={idx}>
-                                            <p className="font-semibold">{section.title}</p>
-                                            <ul className="list-disc ps-5 rtl:ps-0 rtl:pe-5 mt-1 space-y-1 text-sm">
-                                                {section.points.map((point, pidx) => <li key={pidx}>{point}</li>)}
-                                            </ul>
-                                        </li>
+                         {keywordResult.sources && keywordResult.sources.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
+                                <ul className="list-disc list-inside space-y-1">
+                                    {keywordResult.sources.map((source, index) => (
+                                        source.web && source.web.uri && (
+                                            <li key={index}>
+                                                <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
+                                                    {source.web.title || source.web.uri}
+                                                </a>
+                                            </li>
+                                        )
                                     ))}
                                 </ul>
                             </div>
-                             <div><strong className="text-gray-900 dark:text-white">{s.callToAction}:</strong> {briefResult.cta}</div>
-                             <div><strong className="text-gray-900 dark:text-white">{s.metaDescription}:</strong> {briefResult.seoMetaDescription}</div>
+                        )}
+                    </ResultCard>
+                )}
+
+                {briefResult && briefResult.data && briefResult.data.title && (
+                    <ResultCard title={s.contentBrief} copyText={formatBriefForCopy(briefResult.data)}>
+                        <div className="space-y-4 text-gray-700 dark:text-gray-300">
+                            <div><strong className="text-gray-900 dark:text-white">{s.title}:</strong> {briefResult.data.title}</div>
+                            <div><strong className="text-gray-900 dark:text-white">{s.hook}:</strong> {briefResult.data.hook}</div>
+                            <div><strong className="text-gray-900 dark:text-white">{s.introduction}:</strong> {briefResult.data.introduction}</div>
+                            <div>
+                                <strong className="text-gray-900 dark:text-white">{s.bodySections}:</strong>
+                                {briefResult.data.bodySections && (
+                                    <ul className="mt-2 space-y-3 ps-5 rtl:ps-0 rtl:pe-5">
+                                        {briefResult.data.bodySections.map((section, idx) => (
+                                            <li key={idx}>
+                                                <p className="font-semibold">{section.title}</p>
+                                                {section.points && (
+                                                    <ul className="list-disc ps-5 rtl:ps-0 rtl:pe-5 mt-1 space-y-1 text-sm">
+                                                        {section.points.map((point, pidx) => <li key={pidx}>{point}</li>)}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                             <div><strong className="text-gray-900 dark:text-white">{s.callToAction}:</strong> {briefResult.data.cta}</div>
+                             <div><strong className="text-gray-900 dark:text-white">{s.metaDescription}:</strong> {briefResult.data.seoMetaDescription}</div>
                         </div>
+                        {briefResult.sources && briefResult.sources.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                                <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
+                                <ul className="list-disc list-inside space-y-1">
+                                    {briefResult.sources.map((source, index) => (
+                                        source.web && source.web.uri && (
+                                            <li key={index}>
+                                                <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
+                                                    {source.web.title || source.web.uri}
+                                                </a>
+                                            </li>
+                                        )
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </ResultCard>
                 )}
             </div>
