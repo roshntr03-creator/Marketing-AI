@@ -1,0 +1,7 @@
+{
+  "name": "Marketing AI",
+  "description": "An AI-powered SEO assistant to generate keywords and content briefs for small and medium-sized businesses in the MENA region. This application supports both Arabic and English with a full right-to-left (RTL) interface for Arabic.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
