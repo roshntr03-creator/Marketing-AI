@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
-import { InfluencerResult, GroundedResult } from '../types.ts';
+import { InfluencerResult, GroundedResult, Influencer } from '../types.ts';
 import { findInfluencers } from '../services/geminiService.ts';
 import { Spinner } from './Spinner.tsx';
 import { ResultCard } from './shared/ResultCard.tsx';
@@ -29,13 +29,13 @@ const InfluencerAssistant: React.FC = () => {
             const result = await findInfluencers(city, category, followerRange, language);
             setResults(result);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(false);
         }
     };
 
-    const formatInfluencerForCopy = (influencer: InfluencerResult[0]): string => {
+    const formatInfluencerForCopy = (influencer: Influencer): string => {
         let text = `Username: ${influencer.username}\nPlatform: ${influencer.platform}\nFollowers: ${influencer.followers}\nCategory: ${influencer.category}\nBio: ${influencer.bio}`;
         if (influencer.profileUrl) {
             text += `\nProfile: ${influencer.profileUrl}`;
@@ -79,7 +79,6 @@ const InfluencerAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !results && (
@@ -88,7 +87,7 @@ const InfluencerAssistant: React.FC = () => {
                 </div>
             )}
             
-            {results && results.data && (
+            {results?.data && (
                 <div className="mt-8">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{s.influencerResults}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -125,7 +124,7 @@ const InfluencerAssistant: React.FC = () => {
                             <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
                             <ul className="list-disc list-inside space-y-1">
                                 {results.sources.map((source, index) => (
-                                    source.web && source.web.uri && (
+                                    source.web?.uri && (
                                         <li key={index}>
                                             <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
                                                 {source.web.title || source.web.uri}

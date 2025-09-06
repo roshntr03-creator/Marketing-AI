@@ -69,7 +69,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
             <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md dark:bg-gray-800 m-4">
                 <div className="text-center">
                      <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse mb-4">
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor" className="w-10 h-10 text-primary-500">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-primary-500">
                             <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM12 22.18v-9l-9-5.25v8.57a.75.75 0 00.372-.648l8.628 5.033z" />
                         </svg>
                         <h1 className="text-3xl font-bold text-gray-700 dark:text-gray-200">{s.createAccount}</h1>

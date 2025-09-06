@@ -29,7 +29,7 @@ const SmmAssistant: React.FC = () => {
             const result = await generateSmmPlan(topic, numPosts, platform, language);
             setResults(result);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(false);
         }
@@ -75,7 +75,6 @@ const SmmAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !results && (
@@ -84,7 +83,7 @@ const SmmAssistant: React.FC = () => {
                 </div>
             )}
             
-            {results && results.data && (
+            {results?.data && (
                 <div className="mt-8">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{`${s.smmResults} - ${platform}`}</h3>
                     <div className="space-y-6">
@@ -112,7 +111,7 @@ const SmmAssistant: React.FC = () => {
                             <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
                             <ul className="list-disc list-inside space-y-1">
                                 {results.sources.map((source, index) => (
-                                    source.web && source.web.uri && (
+                                    source.web?.uri && (
                                         <li key={index}>
                                             <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
                                                 {source.web.title || source.web.uri}

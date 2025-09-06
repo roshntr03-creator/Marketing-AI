@@ -18,7 +18,7 @@ export const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => 
     return (
         <button
             onClick={handleCopy}
-            className="absolute top-3 end-3 p-2 text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="p-2 text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={s.copy}
         >
             {copied ? (

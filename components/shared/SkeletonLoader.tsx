@@ -1,9 +1,8 @@
-
 import React from 'react';
 
 export const SkeletonLoader: React.FC = () => (
     <div className="animate-pulse">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mt-4">
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
             <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-6"></div>
             <div className="space-y-4">

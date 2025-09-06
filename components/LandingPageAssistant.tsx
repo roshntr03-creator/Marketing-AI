@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
@@ -28,7 +27,7 @@ const LandingPageAssistant: React.FC = () => {
             const apiResult = await generateLandingPageCopy(productDescription, language);
             setResult(apiResult);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(false);
         }
@@ -69,7 +68,6 @@ const LandingPageAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !result && (

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
-import { EmailCampaignResult } from '../types.ts';
+import { EmailCampaignResult, EmailResult } from '../types.ts';
 import { generateEmailCampaign } from '../services/geminiService.ts';
 import { Spinner } from './Spinner.tsx';
 import { ResultCard } from './shared/ResultCard.tsx';
@@ -29,13 +28,13 @@ const EmailAssistant: React.FC = () => {
             const apiResult = await generateEmailCampaign(campaignGoal, productDescription, language);
             setResults(apiResult);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(false);
         }
     };
 
-    const formatResultForCopy = (email: EmailCampaignResult[0]): string => {
+    const formatResultForCopy = (email: EmailResult): string => {
         return `${s.subject}: ${email.subject}\n\n${email.body}`;
     };
 
@@ -83,7 +82,6 @@ const EmailAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !results && (

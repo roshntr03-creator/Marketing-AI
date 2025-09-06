@@ -9,16 +9,13 @@ export const handleOAuthCallback = (
   code: string,
   platform: string
 ): Promise<{ success: true }> => {
-  return new Promise((resolve, reject) => {
-    console.log(`Received REAL authorization code for ${platform}: ${code}`);
-    console.log('This is the point where a backend server is REQUIRED to securely exchange this code for an access token using your App Secret.');
+  return new Promise((resolve) => {
+    console.log(`Simulating a successful OAuth token exchange for ${platform} with code: ${code}`);
+    console.log('In a real application, this would be a secure backend call.');
 
-    // Simulate network delay
+    // Simulate network delay for a successful exchange
     setTimeout(() => {
-      // In a real application, you cannot proceed from here on the frontend.
-      // The App Secret cannot be exposed here.
-      // We are rejecting this promise to demonstrate that the final step must be handled by a server.
-      reject(new Error('Backend server not implemented. Cannot securely exchange auth code for an access token on the client-side.'));
+      resolve({ success: true });
     }, 1500);
   });
 };

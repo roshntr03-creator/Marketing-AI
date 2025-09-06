@@ -27,7 +27,7 @@ const SeoAssistant: React.FC = () => {
             const result = await generateKeywords(topic, language);
             setKeywordResult(result);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(null);
         }
@@ -43,7 +43,7 @@ const SeoAssistant: React.FC = () => {
             const result = await generateContentBrief(topic, language);
             setBriefResult(result);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(null);
         }
@@ -78,7 +78,6 @@ const SeoAssistant: React.FC = () => {
     return (
         <div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{s.seoTitle}</h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-2">{s.seoDescription}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">{s.searchDisclaimer}</p>
 
@@ -108,7 +107,6 @@ const SeoAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !keywordResult && !briefResult && (
@@ -118,7 +116,7 @@ const SeoAssistant: React.FC = () => {
             )}
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                {keywordResult && keywordResult.data && keywordResult.data.keywords && (
+                {keywordResult?.data?.keywords && (
                      <ResultCard title={s.keywords} copyText={formatKeywordsForCopy(keywordResult.data)}>
                         <div className="mb-4">
                             <p className="font-semibold text-primary-600 dark:text-primary-400">{s.searchIntent}: <span className="font-normal text-gray-600 dark:text-gray-300">{keywordResult.data.searchIntent}</span></p>
@@ -135,7 +133,7 @@ const SeoAssistant: React.FC = () => {
                                 <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
                                 <ul className="list-disc list-inside space-y-1">
                                     {keywordResult.sources.map((source, index) => (
-                                        source.web && source.web.uri && (
+                                        source.web?.uri && (
                                             <li key={index}>
                                                 <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
                                                     {source.web.title || source.web.uri}
@@ -149,7 +147,7 @@ const SeoAssistant: React.FC = () => {
                     </ResultCard>
                 )}
 
-                {briefResult && briefResult.data && briefResult.data.title && (
+                {briefResult?.data?.title && (
                     <ResultCard title={s.contentBrief} copyText={formatBriefForCopy(briefResult.data)}>
                         <div className="space-y-4 text-gray-700 dark:text-gray-300">
                             <div><strong className="text-gray-900 dark:text-white">{s.title}:</strong> {briefResult.data.title}</div>
@@ -180,7 +178,7 @@ const SeoAssistant: React.FC = () => {
                                 <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
                                 <ul className="list-disc list-inside space-y-1">
                                     {briefResult.sources.map((source, index) => (
-                                        source.web && source.web.uri && (
+                                        source.web?.uri && (
                                             <li key={index}>
                                                 <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
                                                     {source.web.title || source.web.uri}

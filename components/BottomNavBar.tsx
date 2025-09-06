@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';

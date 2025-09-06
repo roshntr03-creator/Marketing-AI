@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header.tsx';
 import { BottomNavBar } from './components/BottomNavBar.tsx';
@@ -7,7 +6,6 @@ import { Language, AppView, User } from './types.ts';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import Login from './components/auth/Login.tsx';
 import SignUp from './components/auth/SignUp.tsx';
-
 import Dashboard from './components/Dashboard.tsx';
 import SeoAssistant from './components/SeoAssistant.tsx';
 import AdsAssistant from './components/AdsAssistant.tsx';
@@ -27,9 +25,10 @@ import Connecting from './components/Connecting.tsx';
 import OAuthCallback from './components/OAuthCallback.tsx';
 import { FullScreenLoader } from './components/shared/FullScreenLoader.tsx';
 import { STRINGS } from './constants.ts';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 
 const LockIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
   </svg>
@@ -40,7 +39,6 @@ const SubscriptionWall: React.FC = () => {
     const s = STRINGS[language];
 
     const handleSubscribe = () => {
-        // Placeholder for subscription flow
         alert('Subscription flow is not implemented yet.');
     };
 
@@ -82,17 +80,11 @@ const AppContent: React.FC = () => {
   const [oauthParams, setOauthParams] = useState<{platform: string; code: string} | null>(null);
 
   useEffect(() => {
-    // Check for OAuth callback parameters on initial load
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-
-    // If a code is present, we assume it's from our OAuth flow
     if (code) {
-        // Since we only have Facebook implemented, we can hardcode it for now.
-        // A more robust solution might encode the platform in the 'state' parameter.
         setOauthParams({ platform: 'facebook', code });
         setActiveView(AppView.OAUTH_CALLBACK);
-        // Clean the URL to avoid re-triggering the callback flow on refresh
         window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -107,9 +99,9 @@ const AppContent: React.FC = () => {
   };
   
   const handleConnectionChange = (platform: 'facebook' | 'instagram', status: boolean) => {
-      if (status) { // User wants to connect, start the flow
+      if (status) {
           startConnectionFlow(platform);
-      } else { // User wants to disconnect
+      } else {
           setConnections(prev => ({ ...prev, [platform]: false }));
       }
   };
@@ -129,14 +121,8 @@ const AppContent: React.FC = () => {
   }, [language]);
 
   const hasAccess = useMemo(() => {
-    if (!user) {
-      return false;
-    }
-    // Admin has free access
-    if (user.role === 'admin') {
-      return true;
-    }
-    // Other users need an active subscription
+    if (!user) return false;
+    if (user.role === 'admin') return true;
     return user.subscription_status === 'active';
   }, [user]);
 
@@ -144,42 +130,26 @@ const AppContent: React.FC = () => {
   const toggleTheme = () => setIsDarkMode(prev => !prev);
   const toggleLanguage = () => setLanguage(prev => prev === Language.EN ? Language.AR : Language.EN);
 
-  const localizationContextValue = useMemo(() => ({ language, setLanguage: toggleLanguage }), [language]);
+  const localizationContextValue = useMemo(() => ({ language, toggleLanguage }), [language]);
 
   const renderActiveView = () => {
     switch(activeView) {
-      case AppView.DASHBOARD:
-        return <Dashboard setActiveView={setActiveView} />;
-      case AppView.SEO:
-        return <SeoAssistant />;
-      case AppView.ADS:
-        return <AdsAssistant />;
-      case AppView.CONTENT:
-        return <ContentAssistant />;
-      case AppView.SMM:
-        return <SmmAssistant />;
-      case AppView.INFLUENCERS:
-        return <InfluencerAssistant />;
-       case AppView.OPTIMIZER:
-        return <OptimizerAssistant />;
-      case AppView.LANDING_PAGES:
-        return <LandingPageAssistant />;
-      case AppView.EMAIL:
-        return <EmailAssistant />;
-      case AppView.AFFILIATE:
-          return <AffiliateAssistant />;
-      case AppView.CRM:
-          return <CrmAssistant />;
-      case AppView.ANALYTICS:
-          return <AnalyticsAssistant connections={connections} setActiveView={setActiveView} />;
-      case AppView.TESTING:
-          return <TestingSuite />;
-      case AppView.MORE:
-          return <MoreView setActiveView={setActiveView} />;
-      case AppView.SETTINGS:
-          return <Settings connections={connections} onConnectionChange={handleConnectionChange} />;
-      case AppView.CONNECTING:
-          return <Connecting platform={connectingPlatform!} />;
+      case AppView.DASHBOARD: return <Dashboard setActiveView={setActiveView} />;
+      case AppView.SEO: return <SeoAssistant />;
+      case AppView.ADS: return <AdsAssistant />;
+      case AppView.CONTENT: return <ContentAssistant />;
+      case AppView.SMM: return <SmmAssistant />;
+      case AppView.INFLUENCERS: return <InfluencerAssistant />;
+      case AppView.OPTIMIZER: return <OptimizerAssistant />;
+      case AppView.LANDING_PAGES: return <LandingPageAssistant />;
+      case AppView.EMAIL: return <EmailAssistant />;
+      case AppView.AFFILIATE: return <AffiliateAssistant />;
+      case AppView.CRM: return <CrmAssistant />;
+      case AppView.ANALYTICS: return <AnalyticsAssistant connections={connections} setActiveView={setActiveView} />;
+      case AppView.TESTING: return <TestingSuite />;
+      case AppView.MORE: return <MoreView setActiveView={setActiveView} />;
+      case AppView.SETTINGS: return <Settings connections={connections} onConnectionChange={handleConnectionChange} />;
+      case AppView.CONNECTING: return <Connecting platform={connectingPlatform!} />;
       case AppView.OAUTH_CALLBACK:
           return <OAuthCallback
                       platform={oauthParams!.platform as 'facebook' | 'instagram'}
@@ -234,7 +204,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AuthProvider>
   );
 };

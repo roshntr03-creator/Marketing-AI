@@ -30,9 +30,10 @@ const OAuthCallback: React.FC<OAuthCallbackProps> = ({ platform, code, onConnect
                 setStatus('success');
                 setTimeout(() => {
                     setActiveView(AppView.SETTINGS);
-                }, 2000); // Redirect after 2 seconds
+                }, 2000);
             } catch (err: any) {
                 setErrorMessage(err.message || s.connectionErrorMessage);
+                onConnectionSuccess(platform, false);
                 setStatus('error');
             }
         };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext.ts';
 import { STRINGS } from '../constants.ts';
@@ -72,14 +71,10 @@ const TestingSuite: React.FC = () => {
     
     const renderStatus = (status: TestResult['status']) => {
         switch (status) {
-            case 'idle':
-                return <ClockIcon />;
-            case 'running':
-                return <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>;
-            case 'passed':
-                return <CheckCircleIcon />;
-            case 'failed':
-                return <XCircleIcon />;
+            case 'idle': return <ClockIcon />;
+            case 'running': return <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>;
+            case 'passed': return <CheckCircleIcon />;
+            case 'failed': return <XCircleIcon />;
         }
     };
     

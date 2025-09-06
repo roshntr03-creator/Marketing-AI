@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { User } from '../types.ts';
 import { supabase } from '../services/supabaseClient.ts';
@@ -67,7 +66,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
         console.error("Error logging out:", error);
     }
-    // The onAuthStateChange listener will handle setting user to null
   };
 
   return (

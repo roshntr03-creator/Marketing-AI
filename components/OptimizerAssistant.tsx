@@ -26,7 +26,7 @@ const OptimizerAssistant: React.FC = () => {
             const result = await getOptimizerSuggestions(platform, industry, language);
             setResults(result);
         } catch (err) {
-            setError(s.error);
+            setError((err as Error).message || s.error);
         } finally {
             setLoading(false);
         }
@@ -50,7 +50,6 @@ const OptimizerAssistant: React.FC = () => {
     return (
         <div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{s.optimizerTitle}</h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-2">{s.optimizerDescription}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">{s.searchDisclaimer}</p>
 
@@ -76,7 +75,6 @@ const OptimizerAssistant: React.FC = () => {
             </div>
 
             {error && <div className="mt-4 text-center text-red-500 bg-red-100 dark:bg-red-900/30 p-3 rounded-md">{error}</div>}
-
             {loading && <SkeletonLoader />}
 
             {!loading && !error && !results && (
@@ -85,7 +83,7 @@ const OptimizerAssistant: React.FC = () => {
                 </div>
             )}
             
-            {results && results.data && (
+            {results?.data && (
                 <div className="mt-8">
                      <ResultCard title={s.optimizerResults} copyText={formatResultsForCopy(results.data)}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -114,7 +112,7 @@ const OptimizerAssistant: React.FC = () => {
                                 <h4 className="font-semibold mb-2 text-gray-700 dark:text-gray-300">{s.sources}:</h4>
                                 <ul className="list-disc list-inside space-y-1">
                                     {results.sources.map((source, index) => (
-                                        source.web && source.web.uri && (
+                                        source.web?.uri && (
                                             <li key={index}>
                                                 <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline dark:text-primary-400">
                                                     {source.web.title || source.web.uri}
